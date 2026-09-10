@@ -1,0 +1,109 @@
+
+	.postkit-style-options {
+		max-width: 900px;
+		margin-top: 25px;
+	}
+
+	.postkit-style-card {
+		display: block;
+		position: relative;
+		margin-bottom: 18px;
+		cursor: pointer;
+	}
+
+	.postkit-style-card > input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.postkit-style-card-content {
+		border: 1px solid #dcdcde;
+		border-radius: 6px;
+		background: #fff;
+		padding: 22px 24px;
+		transition:
+			border-color 0.15s ease,
+			box-shadow 0.15s ease,
+			background-color 0.15s ease;
+	}
+
+	.postkit-style-card:hover .postkit-style-card-content {
+		border-color: #8c8f94;
+	}
+
+	.postkit-style-card > input:checked + .postkit-style-card-content {
+		border-color: #2271b1;
+		box-shadow: 0 0 0 1px #2271b1;
+		background: #f6fbff;
+	}
+
+	.postkit-style-card-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 15px;
+		font-size: 16px;
+	}
+
+	.postkit-style-card-header strong {
+		font-size: 17px;
+		color: #1d2327;
+	}
+
+	.postkit-style-name {
+		color: #646970;
+		font-size: 14px;
+	}
+
+	.postkit-style-preview {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 12px;
+		min-height: 58px;
+		padding: 0 22px;
+		border: 1px solid #dcdcde;
+		border-radius: 5px;
+		background: #f6f7f7;
+		color: #1d2327;
+		font-size: 15px;
+		line-height: 1.5;
+	}
+
+	.postkit-preview-a {
+		gap: 10px;
+	}
+
+	.postkit-preview-b {
+		gap: 14px;
+	}
+
+	.postkit-preview-c {
+		gap: 12px;
+	}
+
+	.postkit-preview-separator {
+		color: #8c8f94;
+		font-weight: 400;
+	}
+
+	.postkit-style-description {
+		margin: 12px 0 0;
+		color: #646970;
+		font-size: 13px;
+	}
+
+	@media screen and (max-width: 782px) {
+
+		.postkit-style-preview {
+			padding: 14px;
+			gap: 8px;
+			font-size: 14px;
+		}
+
+		.postkit-style-card-content {
+			padding: 18px;
+		}
+
+	}
