@@ -1,0 +1,226 @@
+/* ========================================
+   WP PostKit - Frontend Metadata
+======================================== */
+
+.postkit-meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 20px 0;
+	color: #666666;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.postkit-meta-icon {
+	width: var(--postkit-icon-size, 1em);
+	height: var(--postkit-icon-size, 1em);
+	display: inline-block;
+	vertical-align: -0.15em;
+	margin-right: 4px;
+	flex-shrink: 0;
+	color: var(--postkit-icon-color, currentColor);
+}
+
+.postkit-meta > * {
+	margin: 0;
+}
+
+
+/* ========================================
+   Style A
+   Clean & Minimal
+======================================== */
+
+.postkit-style_a {
+	gap: 8px;
+}
+
+.postkit-style_a .postkit-meta-separator {
+	color: var(--postkit-separator-color);
+}
+
+
+/* ========================================
+   Style B
+   Divided
+======================================== */
+
+.postkit-style_b {
+	gap: 12px;
+	padding: 10px 0;
+}
+
+.postkit-style_b .postkit-meta-separator {
+	color: var(--postkit-separator-color);
+}
+
+
+/* ========================================
+   Style C
+   With Icons
+======================================== */
+
+.postkit-style_c {
+	gap: 10px;
+	padding: 12px 16px;
+	border: 1px solid #e5e5e5;
+	border-radius: 6px;
+	background: #f8f8f8;
+}
+
+.postkit-style_c .postkit-meta-separator {
+	color: var(--postkit-separator-color);
+}
+
+
+/* ========================================
+   Like Button
+======================================== */
+
+.postkit-like-button {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	background: transparent;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+}
+
+.postkit-like-button:hover {
+	background: transparent;
+}
+
+.postkit-like-button:focus {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+/* ========================================
+   Table of Contents
+   ======================================== */
+
+.postkit-toc {
+	margin: 24px 0;
+	padding: 16px 20px;
+
+	background: var(
+		--postkit-toc-background-color,
+		#f8f8f8
+	);
+
+	color: var(
+		--postkit-toc-text-color,
+		#333333
+	);
+
+	font-size: var(
+		--postkit-toc-text-font-size,
+		14px
+	);
+
+	line-height: 1.6;
+}
+
+
+/* TOC Title */
+
+.postkit-toc-title {
+	margin: 0 0 12px;
+
+	font-size: var(
+		--postkit-toc-title-font-size,
+		18px
+	);
+
+	font-weight: var(
+		--postkit-toc-title-font-weight,
+		600
+	);
+
+	color: var(
+		--postkit-toc-title-color,
+		#333333
+	);
+}
+
+
+/* TOC List */
+
+.postkit-toc-list {
+	margin: 0;
+	padding-left: 20px;
+}
+
+.postkit-toc-list li {
+	margin: 4px 0;
+}
+
+
+/* TOC Links */
+
+.postkit-toc-list a {
+	color: var(
+		--postkit-toc-text-color,
+		#333333
+	);
+
+	text-decoration: none;
+}
+
+.postkit-toc-list a:hover {
+	text-decoration: underline;
+}
+
+
+/* ----------------------------------------
+   Style A — Clean
+   ---------------------------------------- */
+
+.postkit-toc-style_a {
+	border: 0;
+
+	border-left: 3px solid var(
+		--postkit-toc-border-color,
+		#e5e5e5
+	);
+
+	border-radius: 0;
+}
+
+
+/* ----------------------------------------
+   Style B — Bordered
+   ---------------------------------------- */
+
+.postkit-toc-style_b {
+	border: 1px solid var(
+		--postkit-toc-border-color,
+		#e5e5e5
+	);
+
+	border-radius: 4px;
+}
+
+
+/* ----------------------------------------
+   Style C — Boxed
+   ---------------------------------------- */
+
+.postkit-toc-style_c {
+	border: 1px solid var(
+		--postkit-toc-border-color,
+		#e5e5e5
+	);
+
+	border-radius: 8px;
+
+	box-shadow: 0 2px 8px rgba(
+		0,
+		0,
+		0,
+		0.05
+	);
+}

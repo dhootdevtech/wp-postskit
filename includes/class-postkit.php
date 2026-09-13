@@ -28,7 +28,23 @@ class PostKit {
         $meta = new PostKit_Meta();
         $meta->init();
 
+		add_action(
+			'wp_enqueue_scripts',
+			array( $this, 'enqueue_frontend_assets' )
+		);
+
 	}
+
+	public function enqueue_frontend_assets() {
+
+	wp_enqueue_style(
+		'postkit-frontend',
+		POSTKIT_URL . 'assets/css/postkit-frontend.css',
+		array(),
+		POSTKIT_VERSION
+	);
+
+}
 
 	private function load_dependencies() {
 

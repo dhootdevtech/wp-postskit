@@ -165,7 +165,7 @@ public function init() {
 	 *
 	 * [postkit_reading_time]
 	 */
-	public function reading_time_shortcode( $atts ) {
+	public function reading_time_shortcode(  $atts = array() ) {
 
 		$atts = shortcode_atts(
 			array(
@@ -200,7 +200,7 @@ public function init() {
 	 *
 	 * [postkit_word_count]
 	 */
-	public function word_count_shortcode( $atts ) {
+	public function word_count_shortcode(  $atts = array() ) {
 
 	$atts = shortcode_atts(
 		array(

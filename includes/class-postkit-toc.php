@@ -66,9 +66,19 @@ class PostKit_TOC {
 		return '';
 	}
 
-	$result = $this->build_toc( $content );
+	$settings = get_option(
+	'postkit_settings',
+	array()
+);
 
-	return $result['toc'];
+$result = $this->build_toc(
+	$content,
+	$settings
+);
+
+return $result['toc'];
+
+
 
 }
 
@@ -77,41 +87,128 @@ class PostKit_TOC {
 	 */
 	public function automatic_toc( $content ) {
 
-		if ( is_admin() ) {
-			return $content;
-		}
-
-		if ( ! is_singular( 'post' ) ) {
-			return $content;
-		}
-
-		if ( is_feed() ) {
-			return $content;
-		}
-
-		$settings = get_option(
-			'postkit_settings',
-			array()
-		);
-
-		if ( empty( $settings['toc'] ) ) {
-			return $content;
-		}
-
-		$result = $this->build_toc( $content );
-
-		if ( empty( $result['toc'] ) ) {
-			return $content;
-		}
-
-		return $result['toc'] . $result['content'];
-
+	if ( is_admin() ) {
+		return $content;
 	}
 
+	if ( ! is_singular( 'post' ) ) {
+		return $content;
+	}
+
+	if ( is_feed() ) {
+		return $content;
+	}
+
+	$settings = get_option(
+		'postkit_settings',
+		array()
+	);
+
+	if ( empty( $settings['toc'] ) ) {
+		return $content;
+	}
+
+	$result = $this->build_toc(
+		$content,
+		$settings
+	);
+
+	if ( empty( $result['toc'] ) ) {
+		return $content;
+	}
+
+	/*
+	 * If the manual TOC shortcode is already
+	 * present, only use the modified content.
+	 *
+	 * This ensures heading IDs are added so
+	 * manual TOC links work correctly.
+	 */
+	if ( has_shortcode( $content, 'postkit_toc' ) ) {
+		return $result['content'];
+	}
+
+	return $result['toc'] . $result['content'];
+}
 	/**
 	 * Build TOC and add IDs to headings.
 	 */
-	private function build_toc( $content ) {
+	private function build_toc(
+	$content,
+	$settings = array()
+) {
+
+$toc_style = isset( $settings['toc_style'] )
+	? $settings['toc_style']
+	: 'style_a';
+
+$toc_title = isset( $settings['toc_title'] )
+	? $settings['toc_title']
+	: 'Table of Contents';
+
+$toc_title_font_size = isset(
+	$settings['toc_title_font_size']
+)
+	? absint( $settings['toc_title_font_size'] )
+	: 18;
+
+$toc_title_font_weight = isset(
+	$settings['toc_title_font_weight']
+)
+	? $settings['toc_title_font_weight']
+	: '600';
+
+$toc_text_font_size = isset(
+	$settings['toc_text_font_size']
+)
+	? absint( $settings['toc_text_font_size'] )
+	: 14;
+
+$toc_text_color = isset(
+	$settings['toc_text_color']
+)
+	? sanitize_hex_color(
+		$settings['toc_text_color']
+	)
+	: '#333333';
+
+$toc_title_color = isset(
+	$settings['toc_title_color']
+)
+	? sanitize_hex_color(
+		$settings['toc_title_color']
+	)
+	: '#333333';
+
+$toc_background_color = isset(
+	$settings['toc_background_color']
+)
+	? sanitize_hex_color(
+		$settings['toc_background_color']
+	)
+	: '#f8f8f8';
+
+$toc_border_color = isset(
+	$settings['toc_border_color']
+)
+	? sanitize_hex_color(
+		$settings['toc_border_color']
+	)
+	: '#e5e5e5';
+
+if ( ! $toc_text_color ) {
+	$toc_text_color = '#333333';
+}
+if ( ! $toc_title_color ) {
+	$toc_title_color = '#333333';
+}
+if ( ! $toc_background_color ) {
+	$toc_background_color = '#f8f8f8';
+}
+
+if ( ! $toc_border_color ) {
+	$toc_border_color = '#e5e5e5';
+}
 
 		$headings = array();
 		$used_ids = array();
@@ -254,10 +351,10 @@ class PostKit_TOC {
 		 */
 		$toc = '';
 
-		$toc .= '<nav class="postkit-toc" aria-label="Table of Contents">';
+$toc .= '<nav class="postkit-toc postkit-toc-' . esc_attr( $toc_style ) . '" aria-label="' . esc_attr( $toc_title ) . '" style="--postkit-toc-title-font-size: ' . esc_attr( $toc_title_font_size ) . 'px; --postkit-toc-title-font-weight: ' . esc_attr( $toc_title_font_weight ) . '; --postkit-toc-title-color: ' . esc_attr( $toc_title_color ) . '; --postkit-toc-text-font-size: ' . esc_attr( $toc_text_font_size ) . 'px; --postkit-toc-text-color: ' . esc_attr( $toc_text_color ) . '; --postkit-toc-background-color: ' . esc_attr( $toc_background_color ) . '; --postkit-toc-border-color: ' . esc_attr( $toc_border_color ) . ';">';
 
 		$toc .= '<div class="postkit-toc-title">';
-		$toc .= 'Table of Contents';
+	$toc .= esc_html( $toc_title );
 		$toc .= '</div>';
 
 		$toc .= '<ol class="postkit-toc-list">';

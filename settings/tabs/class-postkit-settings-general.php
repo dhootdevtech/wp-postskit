@@ -12,7 +12,11 @@ class PostKit_Settings_General {
 	public function render( $settings ) {
 
 		?>
-
+<input
+	type="hidden"
+	name="postkit_settings[settings_tab]"
+	value="general"
+>
 		<!-- Post Features -->
 
 		<h2>
@@ -43,6 +47,12 @@ class PostKit_Settings_General {
 					<td>
 
 						<label>
+
+							<input
+								type="hidden"
+								name="postkit_settings[reading_time]"
+								value="0"
+							>
 
 							<input
 								type="checkbox"
@@ -86,6 +96,12 @@ class PostKit_Settings_General {
 						<label>
 
 							<input
+								type="hidden"
+								name="postkit_settings[word_count]"
+								value="0"
+							>
+
+							<input
 								type="checkbox"
 								id="postkit-word-count"
 								name="postkit_settings[word_count]"
@@ -125,6 +141,12 @@ class PostKit_Settings_General {
 					<td>
 
 						<label>
+
+							<input
+								type="hidden"
+								name="postkit_settings[toc]"
+								value="0"
+							>
 
 							<input
 								type="checkbox"
@@ -168,6 +190,12 @@ class PostKit_Settings_General {
 						<label>
 
 							<input
+								type="hidden"
+								name="postkit_settings[views]"
+								value="0"
+							>
+
+							<input
 								type="checkbox"
 								id="postkit-views"
 								name="postkit_settings[views]"
@@ -209,16 +237,22 @@ class PostKit_Settings_General {
 						<label>
 
 							<input
-								type="checkbox"
-								id="postkit-likes"
-								name="postkit_settings[likes]"
-								value="1"
-								<?php checked(
-									! empty(
-										$settings['likes']
-									)
-								); ?>
-							>
+									type="hidden"
+									name="postkit_settings[likes]"
+									value="0"
+								>
+
+								<input
+									type="checkbox"
+									id="postkit-likes"
+									name="postkit_settings[likes]"
+									value="1"
+									<?php checked(
+										! empty(
+											$settings['likes']
+										)
+									); ?>
+								>
 
 							<?php esc_html_e(
 								'Enable likes',

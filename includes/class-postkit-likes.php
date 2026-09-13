@@ -48,14 +48,54 @@ class PostKit_Likes {
 			true
 		);
 
-		wp_localize_script(
-			'postkit-likes',
-			'postKitLikes',
-			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'postkit_like_nonce' ),
-			)
-		);
+		$settings = get_option(
+	'postkit_settings',
+	array()
+);
+
+$heart_icon = isset(
+	$settings['heart_icon']
+)
+	? $settings['heart_icon']
+	: 'outline';
+
+$heart_size = isset(
+	$settings['heart_size']
+)
+	? absint( $settings['heart_size'] )
+	: 16;
+
+$heart_color = isset(
+	$settings['heart_color']
+)
+	? sanitize_hex_color(
+		$settings['heart_color']
+	)
+	: '#666666';
+
+$heart_liked_color = isset(
+	$settings['heart_liked_color']
+)
+	? sanitize_hex_color(
+		$settings['heart_liked_color']
+	)
+	: '#e0245e';
+
+wp_localize_script(
+	'postkit-likes',
+	'postKitLikes',
+	array(
+		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+		'nonce'   => wp_create_nonce( 'postkit_like_nonce' ),
+
+		'heart' => array(
+			'icon'       => $heart_icon,
+			'size'       => $heart_size,
+			'color'      => $heart_color,
+			'likedColor' => $heart_liked_color,
+		),
+	)
+);
 
 	}
 
@@ -109,14 +149,78 @@ class PostKit_Likes {
 		}
 
 		$likes = $this->get_likes(
-			$post_id
-		);
+	$post_id
+);
 
-        $cookie_name = 'postkit_liked_' . $post_id;
+/**
+ * Get Like button settings.
+ */
+$settings = get_option(
+	'postkit_settings',
+	array()
+);
 
-        $is_liked = ! empty(
-            $_COOKIE[ $cookie_name ]
-        );
+$heart_icon = isset(
+	$settings['heart_icon']
+)
+	? $settings['heart_icon']
+	: 'outline';
+
+$heart_size = isset(
+	$settings['heart_size']
+)
+	? absint(
+		$settings['heart_size']
+	)
+	: 16;
+
+$heart_color = isset(
+	$settings['heart_color']
+)
+	? sanitize_hex_color(
+		$settings['heart_color']
+	)
+	: '#666666';
+
+$heart_liked_color = isset(
+	$settings['heart_liked_color']
+)
+	? sanitize_hex_color(
+		$settings['heart_liked_color']
+	)
+	: '#e0245e';
+
+/**
+ * Fallback values.
+ */
+if ( ! in_array(
+	$heart_icon,
+	array(
+		'outline',
+		'filled',
+	),
+	true
+) ) {
+	$heart_icon = 'outline';
+}
+
+if ( $heart_size < 12 || $heart_size > 32 ) {
+	$heart_size = 16;
+}
+
+if ( ! $heart_color ) {
+	$heart_color = '#666666';
+}
+
+if ( ! $heart_liked_color ) {
+	$heart_liked_color = '#e0245e';
+}
+
+$cookie_name = 'postkit_liked_' . $post_id;
+
+$is_liked = ! empty(
+	$_COOKIE[ $cookie_name ]
+);
 
 		$output = '<button';
         $output .= ' type="button"';
@@ -130,9 +234,26 @@ class PostKit_Likes {
         $output .= ' data-post-id="' . esc_attr( $post_id ) . '"';
         $output .= '>';
 
-		$output .= '<span class="postkit-like-icon">';
-        $output .= $is_liked ? '♥' : '♡';
-        $output .= '</span>';
+		/**
+ * Determine heart character.
+ */
+if ( 'filled' === $heart_icon ) {
+	$heart_character = '♥';
+} else {
+	$heart_character = '♡';
+}
+
+$output .= '<span class="postkit-like-icon"';
+$output .= ' style="font-size: ' . esc_attr( $heart_size ) . 'px;';
+$output .= ' color: ' . esc_attr(
+		$is_liked
+			? $heart_liked_color
+			: $heart_color
+	) . ';">';
+
+$output .= $heart_character;
+
+$output .= '</span>';
 
         $output .= '<span class="postkit-like-label">';
         $output .= $is_liked ? 'Liked' : esc_html( $atts['label'] );

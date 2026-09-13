@@ -32,6 +32,11 @@ class PostKit_Settings {
 			array( $this, 'add_settings_page' )
 		);
 
+		add_action(
+			'admin_enqueue_scripts',
+			array( $this, 'admin_assets' )
+		);
+
 	}
 
 	private function load_dependencies() {
@@ -40,23 +45,31 @@ class PostKit_Settings {
 
 		require_once POSTKIT_DIR . 'settings/tabs/class-postkit-settings-display.php';
 
-	}
-
-	/**
-	 * Add settings page.
-	 */
-	public function add_admin_menu() {
-
-		add_options_page(
-			'WP PostKit',
-			'WP PostKit',
-			'manage_options',
-			'wp-postkit',
-			array( $this, 'settings_page' )
-		);
+		require_once POSTKIT_DIR . 'settings/tabs/class-postkit-settings-shortcodes.php';
 
 	}
 
+public function admin_assets( $hook ) {
+
+	if ( 'settings_page_wp-postkit' !== $hook ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'postkit-admin',
+		POSTKIT_URL . 'assets/css/postkit-admin.css',
+		array(),
+		POSTKIT_VERSION
+	);
+
+	wp_enqueue_script(
+		'postkit-admin',
+		POSTKIT_URL . 'assets/js/postkit-admin.js',
+		array(),
+		POSTKIT_VERSION,
+		true
+	);
+}
 	/**
 	 * Register plugin settings.
 	 */
@@ -94,24 +107,54 @@ class PostKit_Settings {
 	}
 
 	/**
-	 * Sanitize settings.
+ * Sanitize PostKit settings.
+ *
+ * Settings from different tabs are merged so saving one tab
+ * does not reset values saved from another tab.
+ *
+ * @param array $input Submitted settings.
+ * @return array
+ */
+public function sanitize_settings( $input ) {
+
+	/**
+	 * Get existing settings.
 	 */
-	public function sanitize_settings( $input ) {
+	$existing = get_option(
+		'postkit_settings',
+		array()
+	);
 
-		$sanitized = array();
+	if ( ! is_array( $existing ) ) {
+		$existing = array();
+	}
 
-		/**
-		 * Checkbox settings.
-		 */
-		$checkboxes = array(
-			'reading_time',
-			'word_count',
-			'toc',
-			'views',
-			'likes',
-		);
+	/**
+	 * Start with existing settings.
+	 */
+	$sanitized = $existing;
 
-		foreach ( $checkboxes as $field ) {
+
+	/**
+	 * Checkbox settings.
+	 *
+	 * Important:
+	 * A checkbox that is not submitted means unchecked,
+	 * so we only process these when the General tab
+	 * submitted them.
+	 */
+	$checkboxes = array(
+		'reading_time',
+		'word_count',
+		'toc',
+		'views',
+		'likes',
+		'show_icons',
+	);
+
+	foreach ( $checkboxes as $field ) {
+
+		if ( isset( $input[ $field ] ) ) {
 
 			$sanitized[ $field ] = ! empty(
 				$input[ $field ]
@@ -121,45 +164,45 @@ class PostKit_Settings {
 
 		}
 
+	}
 
-		/**
-		 * Reading speed.
-		 */
-		$sanitized['reading_speed'] = isset(
+
+	/**
+	 * Reading speed.
+	 */
+	if ( isset( $input['reading_speed'] ) ) {
+
+		$reading_speed = absint(
 			$input['reading_speed']
-		)
-			? absint( $input['reading_speed'] )
-			: 200;
+		);
 
-		if (
-			$sanitized['reading_speed'] < 1
-		) {
-			$sanitized['reading_speed'] = 1;
+		if ( $reading_speed < 1 ) {
+			$reading_speed = 1;
 		}
 
-		if (
-			$sanitized['reading_speed'] > 1000
-		) {
-			$sanitized['reading_speed'] = 1000;
+		if ( $reading_speed > 1000 ) {
+			$reading_speed = 1000;
 		}
 
+		$sanitized['reading_speed'] = $reading_speed;
 
-		/**
-		 * Automatic metadata display.
-		 */
+	}
+
+
+	/**
+	 * Automatic metadata display.
+	 */
+	if ( isset( $input['meta_display'] ) ) {
+
 		$allowed_meta_display = array(
 			'disabled',
 			'before',
 			'after',
 		);
 
-		$meta_display = isset(
+		$meta_display = sanitize_key(
 			$input['meta_display']
-		)
-			? sanitize_key(
-				$input['meta_display']
-			)
-			: 'disabled';
+		);
 
 		if (
 			! in_array(
@@ -173,40 +216,477 @@ class PostKit_Settings {
 
 		$sanitized['meta_display'] = $meta_display;
 
-
-		/**
-		 * Display style.
-		 */
-		$allowed_styles = array(
-			'style_a',
-			'style_b',
-			'style_c',
-		);
-
-		$display_style = isset(
-			$input['display_style']
-		)
-			? sanitize_key(
-				$input['display_style']
-			)
-			: 'style_a';
-
-		if (
-			! in_array(
-				$display_style,
-				$allowed_styles,
-				true
-			)
-		) {
-			$display_style = 'style_a';
-		}
-
-		$sanitized['display_style'] = $display_style;
-
-
-		return $sanitized;
-
 	}
+
+
+	/**
+ * Display style.
+ */
+if ( isset( $input['display_style'] ) ) {
+
+	$allowed_styles = array(
+		'style_a',
+		'style_b',
+		'style_c',
+	);
+
+	$display_style = sanitize_key(
+		$input['display_style']
+	);
+
+	if (
+		! in_array(
+			$display_style,
+			$allowed_styles,
+			true
+		)
+	) {
+		$display_style = 'style_a';
+	}
+
+	$sanitized['display_style'] = $display_style;
+
+}
+
+
+/**
+ * Font size.
+ */
+if ( isset( $input['font_size'] ) ) {
+
+	$font_size = absint(
+		$input['font_size']
+	);
+
+	if ( $font_size < 8 ) {
+		$font_size = 8;
+	}
+
+	if ( $font_size > 32 ) {
+		$font_size = 32;
+	}
+
+	$sanitized['font_size'] = $font_size;
+
+}
+
+
+/**
+ * Font weight.
+ */
+if ( isset( $input['font_weight'] ) ) {
+
+	$allowed_weights = array(
+		'400',
+		'500',
+		'600',
+		'700',
+	);
+
+	$font_weight = sanitize_key(
+		$input['font_weight']
+	);
+
+	if (
+		! in_array(
+			$font_weight,
+			$allowed_weights,
+			true
+		)
+	) {
+		$font_weight = '400';
+	}
+
+	$sanitized['font_weight'] = $font_weight;
+
+}
+
+
+/**
+ * Text color.
+ */
+if ( isset( $input['text_color'] ) ) {
+
+	$text_color = sanitize_hex_color(
+		$input['text_color']
+	);
+
+	if ( ! $text_color ) {
+		$text_color = '#666666';
+	}
+
+	$sanitized['text_color'] = $text_color;
+
+}
+
+/**
+ * Separator style.
+ */
+if ( isset( $input['separator_style'] ) ) {
+
+	$allowed_separator_styles = array(
+		'dot',
+		'line',
+		'bullet',
+		'none',
+	);
+
+	$separator_style = sanitize_key(
+		$input['separator_style']
+	);
+
+	if (
+		! in_array(
+			$separator_style,
+			$allowed_separator_styles,
+			true
+		)
+	) {
+		$separator_style = 'dot';
+	}
+
+	$sanitized['separator_style'] = $separator_style;
+
+}
+
+
+/**
+ * Separator color.
+ */
+if ( isset( $input['separator_color'] ) ) {
+
+	$separator_color = sanitize_hex_color(
+		$input['separator_color']
+	);
+
+	if ( ! $separator_color ) {
+		$separator_color = '#b3b3b3';
+	}
+
+	$sanitized['separator_color'] = $separator_color;
+
+}
+
+/**
+ * Heart icon.
+ */
+if ( isset( $input['heart_icon'] ) ) {
+
+	$allowed_heart_icons = array(
+		'outline',
+		'filled',
+	);
+
+	$heart_icon = sanitize_key(
+		$input['heart_icon']
+	);
+
+	if (
+		! in_array(
+			$heart_icon,
+			$allowed_heart_icons,
+			true
+		)
+	) {
+		$heart_icon = 'outline';
+	}
+
+	$sanitized['heart_icon'] = $heart_icon;
+
+}
+
+
+/**
+ * Heart size.
+ */
+if ( isset( $input['heart_size'] ) ) {
+
+	$heart_size = absint(
+		$input['heart_size']
+	);
+
+	if ( $heart_size < 12 ) {
+		$heart_size = 12;
+	}
+
+	if ( $heart_size > 32 ) {
+		$heart_size = 32;
+	}
+
+	$sanitized['heart_size'] = $heart_size;
+
+}
+
+
+/**
+ * Heart color.
+ */
+if ( isset( $input['heart_color'] ) ) {
+
+	$heart_color = sanitize_hex_color(
+		$input['heart_color']
+	);
+
+	if ( ! $heart_color ) {
+		$heart_color = '#666666';
+	}
+
+	$sanitized['heart_color'] = $heart_color;
+
+}
+
+
+/**
+ * Liked heart color.
+ */
+if ( isset( $input['heart_liked_color'] ) ) {
+
+	$heart_liked_color = sanitize_hex_color(
+		$input['heart_liked_color']
+	);
+
+	if ( ! $heart_liked_color ) {
+		$heart_liked_color = '#e0245e';
+	}
+
+	$sanitized['heart_liked_color'] = $heart_liked_color;
+
+}
+
+/**
+ * Icon size.
+ */
+if ( isset( $input['icon_size'] ) ) {
+
+	$icon_size = absint(
+		$input['icon_size']
+	);
+
+	if ( $icon_size < 12 ) {
+		$icon_size = 12;
+	}
+
+	if ( $icon_size > 24 ) {
+		$icon_size = 24;
+	}
+
+	$sanitized['icon_size'] = $icon_size;
+
+}
+
+
+/**
+ * Icon color.
+ */
+if ( isset( $input['icon_color'] ) ) {
+
+	$icon_color = sanitize_hex_color(
+		$input['icon_color']
+	);
+
+	if ( ! $icon_color ) {
+		$icon_color = '#666666';
+	}
+
+	$sanitized['icon_color'] = $icon_color;
+
+}
+
+/**
+ * TOC style.
+ */
+if ( isset( $input['toc_style'] ) ) {
+
+	$allowed_toc_styles = array(
+		'style_a',
+		'style_b',
+		'style_c',
+	);
+
+	$toc_style = sanitize_key(
+		$input['toc_style']
+	);
+
+	if (
+		! in_array(
+			$toc_style,
+			$allowed_toc_styles,
+			true
+		)
+	) {
+		$toc_style = 'style_a';
+	}
+
+	$sanitized['toc_style'] = $toc_style;
+}
+
+
+/**
+ * TOC title.
+ */
+if ( isset( $input['toc_title'] ) ) {
+
+	$toc_title = sanitize_text_field(
+		$input['toc_title']
+	);
+
+	if ( '' === $toc_title ) {
+		$toc_title = 'Table of Contents';
+	}
+
+	$sanitized['toc_title'] = $toc_title;
+}
+
+
+/**
+ * TOC title font size.
+ */
+if ( isset( $input['toc_title_font_size'] ) ) {
+
+	$toc_title_font_size = absint(
+		$input['toc_title_font_size']
+	);
+
+	if ( $toc_title_font_size < 12 ) {
+		$toc_title_font_size = 12;
+	}
+
+	if ( $toc_title_font_size > 32 ) {
+		$toc_title_font_size = 32;
+	}
+
+	$sanitized['toc_title_font_size'] =
+		$toc_title_font_size;
+}
+
+
+/**
+ * TOC title font weight.
+ */
+if ( isset( $input['toc_title_font_weight'] ) ) {
+
+	$allowed_toc_title_weights = array(
+		'400',
+		'500',
+		'600',
+		'700',
+	);
+
+	$toc_title_font_weight = sanitize_key(
+		$input['toc_title_font_weight']
+	);
+
+	if (
+		! in_array(
+			$toc_title_font_weight,
+			$allowed_toc_title_weights,
+			true
+		)
+	) {
+		$toc_title_font_weight = '600';
+	}
+
+	$sanitized['toc_title_font_weight'] =
+		$toc_title_font_weight;
+}
+
+
+/**
+ * TOC text font size.
+ */
+if ( isset( $input['toc_text_font_size'] ) ) {
+
+	$toc_text_font_size = absint(
+		$input['toc_text_font_size']
+	);
+
+	if ( $toc_text_font_size < 10 ) {
+		$toc_text_font_size = 10;
+	}
+
+	if ( $toc_text_font_size > 24 ) {
+		$toc_text_font_size = 24;
+	}
+
+	$sanitized['toc_text_font_size'] =
+		$toc_text_font_size;
+}
+
+
+/**
+ * TOC text color.
+ */
+if ( isset( $input['toc_text_color'] ) ) {
+
+	$toc_text_color = sanitize_hex_color(
+		$input['toc_text_color']
+	);
+
+	if ( ! $toc_text_color ) {
+		$toc_text_color = '#333333';
+	}
+
+	$sanitized['toc_text_color'] =
+		$toc_text_color;
+}
+
+
+/**
+ * TOC background color.
+ */
+if ( isset( $input['toc_background_color'] ) ) {
+
+	$toc_background_color = sanitize_hex_color(
+		$input['toc_background_color']
+	);
+
+	if ( ! $toc_background_color ) {
+		$toc_background_color = '#f8f8f8';
+	}
+
+	$sanitized['toc_background_color'] =
+		$toc_background_color;
+}
+
+
+/**
+ * TOC border color.
+ */
+if ( isset( $input['toc_border_color'] ) ) {
+
+	$toc_border_color = sanitize_hex_color(
+		$input['toc_border_color']
+	);
+
+	if ( ! $toc_border_color ) {
+		$toc_border_color = '#e5e5e5';
+	}
+
+	$sanitized['toc_border_color'] =
+		$toc_border_color;
+}
+
+/**
+ * TOC title color.
+ */
+if ( isset( $input['toc_title_color'] ) ) {
+
+	$toc_title_color = sanitize_hex_color(
+		$input['toc_title_color']
+	);
+
+	if ( ! $toc_title_color ) {
+		$toc_title_color = '#333333';
+	}
+
+	$sanitized['toc_title_color'] =
+		$toc_title_color;
+}
+
+
+	return $sanitized;
+
+}
 
 	/**
 	 * Get PostKit settings.
@@ -222,6 +702,27 @@ class PostKit_Settings {
 			'reading_speed' => 200,
 			'meta_display'  => 'disabled',
 			'display_style' => 'style_a',
+			'font_size'   => 14,
+			'font_weight' => '400',
+			'text_color'  => '#666666',
+			'separator_style'  => 'dot',
+            'separator_color'  => '#b3b3b3',
+			'heart_icon'       => 'outline',
+            'heart_size'       => 16,
+            'heart_color'      => '#666666',
+            'heart_liked_color' => '#e0245e',
+			'show_icons'       => 0,
+			'icon_size'  => 16,
+			'icon_color' => '#666666',
+			'toc_style'           => 'style_a',
+			'toc_title'           => 'Table of Contents',
+			'toc_title_font_size' => 18,
+			'toc_title_font_weight' => '600',
+			'toc_text_font_size'  => 14,
+			'toc_text_color'      => '#333333',
+			'toc_background_color' => '#f8f8f8',
+			'toc_border_color'    => '#e5e5e5',
+			'toc_title_color' => '#333333',
 		);
 
 		$settings = get_option(
@@ -307,9 +808,37 @@ class PostKit_Settings {
 					<?php esc_html_e( 'Display', 'wp-postkit' ); ?>
 				</a>
 
+								<a
+					href="<?php echo esc_url(
+						admin_url(
+							'options-general.php?page=wp-postkit&tab=shortcodes'
+						)
+					); ?>"
+					class="nav-tab <?php echo (
+						'shortcodes' === $active_tab
+					)
+						? 'nav-tab-active'
+						: ''; ?>"
+				>
+					<?php esc_html_e( 'Shortcodes', 'wp-postkit' ); ?>
+				</a>
+
 			</nav>
 
+		<?php if ( 'shortcodes' === $active_tab ) : ?>
 
+			<?php
+
+			/**
+			 * Shortcodes tab.
+			 */
+			$shortcodes_tab = new PostKit_Settings_Shortcodes();
+
+			$shortcodes_tab->render();
+
+			?>
+
+		<?php else : ?>
 			<form
 				method="post"
 				action="options.php"
@@ -350,7 +879,6 @@ class PostKit_Settings {
 					$display_tab->render(
 						$settings
 					);
-
 				}
 
 				?>
@@ -361,6 +889,7 @@ class PostKit_Settings {
 				); ?>
 
 			</form>
+			<?php endif; ?>
 
 		</div>
 
